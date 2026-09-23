@@ -304,6 +304,7 @@ object KernelSupport {
                 ?: SOURCE_ACCESS_PUBLIC,
             sourceDefconfigs = config.sourceDefconfigs.orEmpty().map(String::trim).filter(String::isNotBlank),
             sourceDeviceLabel = config.sourceDeviceLabel.trim(),
+            sourceKernelVersionOverride = if (isCustomSource) config.sourceKernelVersionOverride.trim() else "",
             androidVersion = line.androidVersion,
             kernelVersion = line.kernelVersion,
             subLevel = subLevel,
@@ -427,6 +428,10 @@ object KernelSupport {
             ) {
                 return "defconfig 路径无效: $entry"
             }
+        }
+        val kernelOverride = config.sourceKernelVersionOverride.trim()
+        if (kernelOverride.isNotBlank() && !Regex("""^\d+\.\d+(\.\d+)?$""").matches(kernelOverride)) {
+            return "内核版本格式无效，应为 X.Y 或 X.Y.Z"
         }
         return null
     }
