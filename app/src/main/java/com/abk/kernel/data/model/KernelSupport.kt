@@ -1,5 +1,8 @@
 package com.abk.kernel.data.model
 
+import com.abk.kernel.tr
+import com.abk.kernel.R
+
 import java.net.URI
 import kotlin.math.abs
 
@@ -290,9 +293,10 @@ object KernelSupport {
         val normalizedKsuBranch = normalizeKsuBranch(
             if (isOnePlus || ksuVariant == KSU_VARIANT_NONE) KSU_BRANCH_STABLE else config.kernelsuBranch
         )
-        val onePlusKpmSupported = ksuVariant in setOf(KSU_VARIANT_SUKISU, KSU_VARIANT_RESUKISU)
+        val onePlusIsMtk = onePlusCpu.startsWith("mt")
+        val onePlusKpmSupported = !onePlusIsMtk && ksuVariant in setOf(KSU_VARIANT_SUKISU, KSU_VARIANT_RESUKISU)
         val gkiKpmSupported = isKpmSupported(BUILD_TARGET_GKI, ksuVariant, normalizedKsuBranch)
-        val onePlusProxyAllowed = !onePlusCpu.startsWith("mt")
+        val onePlusProxyAllowed = !onePlusIsMtk
         val onePlusSusfsEnabled = onePlusSusfsSupported(line.androidVersion, line.kernelVersion)
         val onePlusLz4kdEnabled = onePlusLz4kdSupported(line.kernelVersion)
         return config.copy(
@@ -415,8 +419,8 @@ object KernelSupport {
         ) {
             return "源码 ref 格式无效"
         }
-        if (!Regex("^\\d{4}-(0[1-9]|1[0-2])$").matches(config.osPatchLevel.trim())) {
-            return "补丁月份必须使用 YYYY-MM"
+        if (!Regex("^(?:\\d{4}-(0[1-9]|1[0-2])|lts)$", RegexOption.IGNORE_CASE).matches(config.osPatchLevel.trim())) {
+            return tr(R.string.build_source_patch_month_invalid)
         }
         val configs = config.sourceDefconfigs.map(String::trim).filter(String::isNotBlank)
         if (configs.isEmpty() || "gki_defconfig" !in configs) {
